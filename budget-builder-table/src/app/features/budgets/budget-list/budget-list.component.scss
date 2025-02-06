@@ -1,4 +1,42 @@
 .budget-card {
-  margin: 10px;
-  padding: 15px;
+    margin: 10px;
+    padding: 15px;
+}
+
+.budget-form {
+    display: flex;
+    gap: 1em;
+    flex-wrap: wrap;
+    &__full-width {
+        flex-basis: 100%;
+    }
+
+    &__list {
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            text-align: left;
+        }
+    }
+    &__bold {
+        font-weight: bold;
+    }
+    &__text-end, th+&__text-end {
+        text-align: end;
+    }
+
+    &__parent {
+      font-size: 1.2em;
+    }
 }
