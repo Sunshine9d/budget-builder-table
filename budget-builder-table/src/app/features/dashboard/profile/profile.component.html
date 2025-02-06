@@ -1,0 +1,17 @@
+<div class="profile-container">
+  <h2>Your Profile</h2>
+
+  <div *ngIf="loading">Loading...</div>
+  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+  <div *ngIf="!loading && user">
+    <mat-card>
+      <mat-card-title>Profile Information</mat-card-title>
+      <mat-card-content>
+        <p><strong>Name:</strong> {{ user.name }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Role:</strong> {{ user.role }}</p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

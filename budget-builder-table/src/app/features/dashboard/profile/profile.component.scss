@@ -1,14 +1,13 @@
-.login-container {
+.profile-container {
   width: 100%;
-  max-width: 400px;
+  max-width: 600px;
   margin: auto;
   padding: 20px;
   text-align: center;
 }
 
-mat-form-field {
-  width: 100%;
-  margin-bottom: 16px;
+mat-card {
+  margin-top: 20px;
 }
 
 .error-message {

@@ -6,6 +6,9 @@ import { AppRoutingModule } from './app-routing.module';
 import {AppComponent} from './app.component';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {HTTP_INTERCEPTORS, provideHttpClient} from '@angular/common/http';
+import {TokenInterceptor} from './core/interceptors/token.interceptor';
+import {AuthModule} from './features/auth/auth.module';
 
 
 @NgModule({
@@ -16,9 +19,15 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
     CommonModule,
     BrowserModule,
     BrowserAnimationsModule,
+    // replicate
+    // HttpClientModule, // Ensure HttpClientModule is imported
     CoreModule,
     SharedModule,
-    AppRoutingModule
+    AppRoutingModule,
+  ],
+  providers: [
+    provideHttpClient(), //HttpClientModule
+    { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true }
   ],
   bootstrap: [AppComponent],
 })

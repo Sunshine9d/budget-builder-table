@@ -1,0 +1,27 @@
+<div class="settings-container">
+  <h2>Settings</h2>
+  <div *ngIf="loading">Loading...</div>
+  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+  <div *ngIf="!loading && user">
+    <mat-card>
+      <mat-card-title>Update Settings</mat-card-title>
+      <mat-card-content>
+        <form (ngSubmit)="saveSettings()">
+          <form [formGroup]="settingsForm">
+            <app-input label="Name" type="text" placeholder="Enter your name" [control]="settingsForm.controls['name']"></app-input>
+            <app-input label="Email" type="email" placeholder="Enter your email" [control]="settingsForm.controls['email']"></app-input>
+            <app-input label="Password" type="password" placeholder="Enter a new password" [control]="settingsForm.controls['password']"></app-input>
+
+            <button mat-raised-button color="primary" (click)="saveSettings()">Save</button>
+          </form>
+
+          <mat-checkbox [(ngModel)]="user.preferences.receiveEmails" name="receiveEmails">
+            Receive email notifications
+          </mat-checkbox>
+
+          <button mat-raised-button color="primary" type="submit">Save Settings</button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

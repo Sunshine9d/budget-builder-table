@@ -1,0 +1,12 @@
+<mat-card class="budget-card" *ngFor="let budget of budgets">
+  <mat-card-title>{{ budget.name }}</mat-card-title>
+  <mat-card-content>Amount: {{ budget.amount | currency }}</mat-card-content>
+</mat-card>
+<mat-card>
+  <form [formGroup]="budgetForm">
+    <app-input label="Name" type="text" placeholder="Enter your name" [control]="budgetForm.controls['name']"></app-input>
+    <app-input label="Email" type="email" placeholder="Enter your email" [control]="budgetForm.controls['amount']"></app-input>
+
+    <button mat-raised-button color="primary" (click)="saveBudget()">Save</button>
+  </form>
+</mat-card>
