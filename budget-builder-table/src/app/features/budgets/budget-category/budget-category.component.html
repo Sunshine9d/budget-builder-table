@@ -1,0 +1,50 @@
+<!--<tr>-->
+<!--    <td class="budget-form__bold">General Income</td>-->
+<!--    <td *ngFor="let subItem of months.value" class="budget-form__text-end">-->
+<!--        {{ subItem.month }}-->
+<!--    </td>-->
+<!--</tr>-->
+<!--<tr>-->
+<!--    <td>Commission</td>-->
+<!--    <td *ngFor="let subItem of months.value" class="budget-form__text-end">-->
+<!--        {{ subItem.month }}-->
+<!--    </td>-->
+<!--</tr>-->
+<!--<tr>-->
+<!--    <td>Add a new ‘General Income’ Category</td>-->
+<!--    <td *ngFor="let subItem of months.value" class="budget-form__text-end"></td>-->
+<!--</tr>-->
+<!--<tr>-->
+<!--    <td class="budget-form__bold">Sub Totals</td>-->
+<!--    <td *ngFor="let subItem of months.value" class="budget-form__text-end">-->
+<!--        {{ subItem.month }}-->
+<!--    </td>-->
+<!--</tr>-->
+<!--<tr>-->
+<!--    <td *ngFor="let subItem of months.value" style="color: white">empty</td>-->
+<!--    <td style="color: white">empty</td>-->
+<!--</tr>-->
+<!--<tr>-->
+<!--    <td class="budget-form__bold">Add New Parent Category</td>-->
+<!--    <td *ngFor="let subItem of months.value" style="color: white">empty</td>-->
+<!--</tr>-->
+<!--&lt;!&ndash;                sum data &ndash;&gt;-->
+<!--<tr>-->
+<!--    <td colspan="3" style="color: white">Sum income</td>-->
+<!--</tr>-->
+<!--<tr>-->
+<!--    <td class="budget-form__bold">Income Total</td>-->
+<!--    <td-->
+<!--        *ngFor="let subItem of months.value"-->
+<!--        class="budget-form__text-end budget-form__bold"-->
+<!--    >-->
+<!--        {{ subItem.month }}-->
+<!--    </td>-->
+<!--</tr>-->
+
+<tr *ngFor="let item of sub.value">
+    <td class="budget-form__bold">{{item.label}}</td>
+    <td *ngFor="let subItem of months.value" class="budget-form__text-end">
+        {{ subItem.month }}
+    </td>
+</tr>

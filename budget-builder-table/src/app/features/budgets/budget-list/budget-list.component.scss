@@ -3,40 +3,46 @@
     padding: 15px;
 }
 
-.budget-form {
-    display: flex;
-    gap: 1em;
-    flex-wrap: wrap;
-    &__full-width {
-        flex-basis: 100%;
-    }
+::ng-deep {
+    .budget-form {
+        display: flex;
+        gap: 1em;
+        flex-wrap: wrap;
 
-    &__list {
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+        &__full-width {
+            flex-basis: 100%;
         }
 
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 8px;
+        &__list {
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+
+            th,
+            td {
+                border: 1px solid #ddd;
+                padding: 8px;
+            }
+
+            th {
+                background-color: #f2f2f2;
+                text-align: left;
+            }
         }
 
-        th {
-            background-color: #f2f2f2;
-            text-align: left;
+        &__bold {
+            font-weight: bold;
         }
-    }
-    &__bold {
-        font-weight: bold;
-    }
-    &__text-end, th+&__text-end {
-        text-align: end;
-    }
 
-    &__parent {
-      font-size: 1.2em;
+        &__text-end,
+        th + &__text-end {
+            text-align: end;
+        }
+
+        &__parent {
+            font-size: 1.2em;
+        }
     }
 }

@@ -1,3 +1,4 @@
+<h2>Budget Builder {{ year }}</h2>
 <mat-card>
     <form [formGroup]="budgetForm" class="budget-form">
         <app-select
@@ -20,11 +21,32 @@
                         {{ budgetForm.controls['startDate'].value }} End Period
                         {{ budgetForm.controls['endDate'].value }}
                     </th>
-                    <th class="budget-form__text-end">January 2024</th>
-                    <th class="budget-form__text-end">February 2024</th>
+                    <th
+                        *ngFor="let month of months.controls"
+                        class="budget-form__text-end"
+                    >
+                        {{ BudgetMonth[month.value.month] }} {{ year }}
+                    </th>
                 </tr>
             </thead>
-            <tbody>
+            <!--            <tbody *ngIf="months.length">-->
+            <!--                <tr>-->
+            <!--                    <td-->
+            <!--                        colspan="3"-->
+            <!--                        class="budget-form__bold budget-form__parent"-->
+            <!--                    >-->
+            <!--                        Income-->
+            <!--                    </td>-->
+            <!--                </tr>-->
+            <!--            </tbody>-->
+            <!--            <ng-container *ngFor="let month of months.controls">-->
+            <!--                <tbody-->
+            <!--                    app-budget-category-->
+            <!--                    [month]="month"-->
+            <!--                    [months]="months"-->
+            <!--                ></tbody>-->
+            <!--            </ng-container>-->
+            <tbody *ngIf="months.length">
                 <tr>
                     <td
                         colspan="3"
@@ -33,40 +55,71 @@
                         Income
                     </td>
                 </tr>
+                <!--                Start Income-->
+                <ng-container *ngFor="let subItem of income.controls">
+                    <tr
+                        *ngFor="
+                            let cate of getSub(subItem).controls;
+                            let i = index
+                        "
+                    >
+                        <td [ngClass]="{ 'budget-form__bold': i === 0 }">
+                            {{ cate.value.type }}
+                        </td>
+                        <td
+                            *ngFor="let month of getMonth(cate)?.controls"
+                            class="budget-form__text-end"
+                        >
+                            {{ month.value }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td
+                            (click)="
+                                addSubCate1(subItem, 'General Income-copy')
+                            "
+                        >
+                            Add a new ‘General Income’ Category
+                        </td>
+                        <td
+                            *ngFor="let subItem of months.value"
+                            class="budget-form__text-end"
+                        ></td>
+                    </tr>
+                    <tr>
+                        <td class="budget-form__bold">Sub Totals</td>
+                        <td
+                            *ngFor="let subItem of months.value"
+                            class="budget-form__text-end"
+                        >
+                            {{ subItem.month }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td
+                            *ngFor="let subItem of months.value"
+                            style="color: white"
+                        >
+                            empty
+                        </td>
+                        <td style="color: white">empty</td>
+                    </tr>
+                </ng-container>
                 <tr>
-                    <td class="budget-form__bold">General Income</td>
-                    <td class="budget-form__text-end">100</td>
-                    <td class="budget-form__text-end">120</td>
-                </tr>
-                <tr>
-                    <td>Sales</td>
-                    <td class="budget-form__text-end">200</td>
-                    <td class="budget-form__text-end">400</td>
-                </tr>
-                <tr>
-                    <td>Commission</td>
-                    <td class="budget-form__text-end">0</td>
-                    <td class="budget-form__text-end">200</td>
-                </tr>
-                <tr>
-                    <td>Add a new ‘General Income’ Category</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td class="budget-form__bold">Sub Totals</td>
-                    <td class="budget-form__text-end">300</td>
-                    <td class="budget-form__text-end">720</td>
-                </tr>
-                <tr>
-                    <td style="color: white">empty</td>
-                    <td style="color: white">empty</td>
-                    <td style="color: white">empty</td>
-                </tr>
-                <tr>
-                    <td class="budget-form__bold">Add New Parent Category</td>
-                    <td style="color: white"></td>
-                    <td style="color: white"></td>
+                    <td
+                        class="budget-form__bold"
+                        (click)="
+                            addParentCategory(income, 'Parent Category-copy')
+                        "
+                    >
+                        Add New Parent Category
+                    </td>
+                    <td
+                        *ngFor="let subItem of months.value"
+                        style="color: white"
+                    >
+                        empty
+                    </td>
                 </tr>
                 <!--                sum data -->
                 <tr>
@@ -74,44 +127,143 @@
                 </tr>
                 <tr>
                     <td class="budget-form__bold">Income Total</td>
-                    <td class="budget-form__text-end budget-form__bold">100</td>
-                    <td class="budget-form__text-end budget-form__bold">120</td>
+                    <td
+                        *ngFor="let subItem of months.value"
+                        class="budget-form__text-end budget-form__bold"
+                    >
+                        {{ subItem.month }}
+                    </td>
                 </tr>
+                <!--                Start Expenses-->
+                <!--                <tr>-->
+                <!--                    <td-->
+                <!--                        colspan="3"-->
+                <!--                        class="budget-form__bold budget-form__parent"-->
+                <!--                    >-->
+                <!--                        Income-->
+                <!--                    </td>-->
+                <!--                </tr>-->
+                <!--            Start Income-->
 
+                <!--                <tr>-->
+                <!--                    <td class="budget-form__bold">General Income</td>-->
+                <!--                    <td-->
+                <!--                        *ngFor="let subItem of months.value"-->
+                <!--                        class="budget-form__text-end"-->
+                <!--                    >-->
+                <!--                        {{ subItem.month }}-->
+                <!--                    </td>-->
+                <!--                </tr>-->
+                <!--                <tr>-->
+                <!--                    <td>Commission</td>-->
+                <!--                    <td-->
+                <!--                        *ngFor="let subItem of months.value"-->
+                <!--                        class="budget-form__text-end"-->
+                <!--                    >-->
+                <!--                        {{ subItem.month }}-->
+                <!--                    </td>-->
+                <!--                </tr>-->
+                <!--                <tr>-->
+                <!--                    <td>Add a new ‘General Income’ Category</td>-->
+                <!--                    <td-->
+                <!--                        *ngFor="let subItem of months.value"-->
+                <!--                        class="budget-form__text-end"-->
+                <!--                    ></td>-->
+                <!--                </tr>-->
+                <!--                <tr>-->
+                <!--                    <td class="budget-form__bold">Sub Totals</td>-->
+                <!--                    <td-->
+                <!--                        *ngFor="let subItem of months.value"-->
+                <!--                        class="budget-form__text-end"-->
+                <!--                    >-->
+                <!--                        {{ subItem.month }}-->
+                <!--                    </td>-->
+                <!--                </tr>-->
+                <!--                <tr>-->
+                <!--                    <td-->
+                <!--                        *ngFor="let subItem of months.value"-->
+                <!--                        style="color: white"-->
+                <!--                    >-->
+                <!--                        empty-->
+                <!--                    </td>-->
+                <!--                    <td style="color: white">empty</td>-->
+                <!--                </tr>-->
+                <!--                <tr>-->
+                <!--                    <td class="budget-form__bold">Add New Parent Category</td>-->
+                <!--                    <td-->
+                <!--                        *ngFor="let subItem of months.value"-->
+                <!--                        style="color: white"-->
+                <!--                    >-->
+                <!--                        empty-->
+                <!--                    </td>-->
+                <!--                </tr>-->
+                <!--                &lt;!&ndash;                sum data &ndash;&gt;-->
+                <!--                <tr>-->
+                <!--                    <td colspan="3" style="color: white">Sum income</td>-->
+                <!--                </tr>-->
+                <!--                <tr>-->
+                <!--                    <td class="budget-form__bold">Income Total</td>-->
+                <!--                    <td-->
+                <!--                        *ngFor="let subItem of months.value"-->
+                <!--                        class="budget-form__text-end budget-form__bold"-->
+                <!--                    >-->
+                <!--                        {{ subItem.month }}-->
+                <!--                    </td>-->
+                <!--                </tr>-->
+                <!--            Start Expenses-->
                 <tr>
-                    <td colspan="3" style="color: white">Start Expenses</td>
+                    <td [attr.colspan]="months.length + 1" style="color: white">
+                        Start Expenses
+                    </td>
                 </tr>
                 <tr>
                     <td
-                        colspan="3"
+                        [attr.colspan]="months.length + 1"
                         class="budget-form__bold budget-form__parent"
                     >
                         Expenses
                     </td>
                 </tr>
-
                 <tr>
-                    <td colspan="3" style="color: white">Sum All</td>
+                    <td [attr.colspan]="months.length + 1" style="color: white">
+                        Sum All
+                    </td>
                 </tr>
                 <tr>
                     <td class="budget-form__bold">Total Expenses</td>
-                    <td class="budget-form__text-end">100</td>
-                    <td class="budget-form__text-end =">120</td>
+                    <td
+                        *ngFor="let subItem of months.value"
+                        class="budget-form__text-end"
+                    >
+                        {{ subItem.month }}
+                    </td>
                 </tr>
                 <tr>
                     <td class="budget-form__bold">Profit / Loss</td>
-                    <td class="budget-form__text-end">100</td>
-                    <td class="budget-form__text-end =">120</td>
+                    <td
+                        *ngFor="let subItem of months.value"
+                        class="budget-form__text-end"
+                    >
+                        {{ subItem.month }}
+                    </td>
                 </tr>
                 <tr>
                     <td class="budget-form__bold">Opening Balance</td>
-                    <td class="budget-form__text-end">100</td>
-                    <td class="budget-form__text-end =">120</td>
+                    <td
+                        *ngFor="let subItem of months.value"
+                        class="budget-form__text-end"
+                    >
+                        {{ subItem.month }}
+                    </td>
                 </tr>
                 <tr>
                     <td class="budget-form__bold">Closing Balance</td>
-                    <td class="budget-form__text-end">100</td>
-                    <td class="budget-form__text-end =">120</td>
+                    <td
+                        *ngFor="let subItem of months.value"
+                        class="budget-form__text-end"
+                    >
+                        {{ subItem.month }}
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -123,5 +275,5 @@
     (click)="saveBudget()"
     class="budget-form__full-width"
 >
-    Save
+    Save As JSON File
 </button>
