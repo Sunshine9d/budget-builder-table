@@ -6,9 +6,10 @@ import { BudgetsComponent } from './budgets.component';
 import { BudgetListComponent } from './budget-list/budget-list.component';
 import { SharedModule } from '../../shared/shared.module';
 import { BudgetCategoryComponent } from './budget-category/budget-category.component';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
     declarations: [BudgetsComponent, BudgetListComponent, BudgetCategoryComponent],
-    imports: [CommonModule, SharedModule, BudgetsRoutingModule],
+    imports: [CommonModule, SharedModule, BudgetsRoutingModule, ReactiveFormsModule],
 })
 export class BudgetsModule {}

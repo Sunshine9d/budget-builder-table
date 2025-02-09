@@ -44,5 +44,24 @@
         &__parent {
             font-size: 1.2em;
         }
+
+        &__input-clear {
+           width: 100%;
+            * .mdc-notched-outline > * {
+                border-color: white !important;
+            }
+            * .mdc-notched-outline>:first-child,* .mdc-notched-outline>:last-child {
+                display: none;
+            }
+            * .mdc-floating-label--float-above {
+                color: white !important;
+            }
+            * .mat-mdc-text-field-wrapper {
+                padding: unset;
+            }
+            * .mat-mdc-form-field-subscript-wrapper {
+                display: none;
+            }
+        }
     }
 }

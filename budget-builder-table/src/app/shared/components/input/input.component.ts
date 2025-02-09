@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
 @Component({
@@ -8,8 +8,15 @@ import { FormControl } from '@angular/forms';
     standalone: false,
 })
 export class InputComponent {
+    @Output() enter = new EventEmitter<string>();
+
+
     @Input() label!: string;
     @Input() type: string = 'text';
     @Input() placeholder: string = '';
     @Input() control!: FormControl;
+
+    emitData(evt: any) {
+        this.enter.emit(evt.target.value);
+    }
 }
