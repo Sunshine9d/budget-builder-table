@@ -1,5 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { AfterViewChecked, AfterViewInit, Component, ElementRef, OnInit, Renderer2 } from '@angular/core';
+import {
+    AbstractControl,
+    FormArray,
+    FormBuilder,
+    FormControl,
+    FormGroup,
+} from '@angular/forms';
 import { BudgetMonth } from '../shared/budget.model';
 
 @Component({
@@ -8,23 +14,25 @@ import { BudgetMonth } from '../shared/budget.model';
     styleUrls: ['./budget-list.component.scss'],
     standalone: false,
 })
-export class BudgetListComponent implements OnInit {
+export class BudgetListComponent implements OnInit, AfterViewInit {
     cateForm = new FormGroup({
         inputCate: new FormControl(''),
         // other form controls
     });
-    year =  '2024';
+    year = '2024';
     budgetForm = new FormGroup({
         startDate: new FormControl(1),
         endDate: new FormControl(11),
         months: new FormArray([]),
         income: new FormArray([]),
+        totalIncome: new FormControl([]),
         expenses: new FormArray([]),
-        profitOrLoss: new FormControl(0),
-        openingBalance: new FormControl(0),
-        closingBalance: new FormControl(0),
+        expensesIncome: new FormControl([]),
     });
 
+    get totalIncome() {
+        return this.budgetForm.get('totalIncome') as FormControl;
+    }
     get inputCate() {
         return this.cateForm.get('inputCate') as FormControl;
     }
@@ -53,26 +61,59 @@ export class BudgetListComponent implements OnInit {
     monthOptions: Array<{ value: number; label: string }> = [];
     endDates: Array<{ value: number; label: string }> = [];
 
-    constructor(private fb: FormBuilder) {}
+    constructor(private fb: FormBuilder, private el: ElementRef, private renderer: Renderer2) {}
 
     ngOnInit() {
         this.monthOptions = this.generateMonthOptions();
         this.valueChanges();
-        this.income.push(this.generateIncome("GeneralIncome"));
+        this.summarySubIncome();
+        this.income.push(this.generateIncome('General Income'));
+
     }
 
-    private generateIncome(name: string){
+    summarySubIncome(){
+        this.income.valueChanges.subscribe((value: Array<{total: number[]}>) => {
+            let totalIncome = this.generateTotal();
+            value.forEach((v, i) => {
+                v.total.forEach((v: number, i: number) => {
+                    totalIncome[i] += +v | 0;
+                });
+            });
+            this.totalIncome.setValue(totalIncome);
+
+        })
+    }
+
+    generateTotal() {
+        return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    }
+
+    // sub income
+    private generateIncome(name: string) {
         const form = this.fb.group({
             category: [name],
             sub: this.fb.array([]),
-            total: [0],
+            total: [this.generateTotal()],
         });
         const sub = form.controls['sub'] as FormArray;
-        sub.push(this.addSubCategory('General Income', 'General Income'));
-        sub.push(this.addSubCategory('Sales', 'Sales'));
-        sub.push(this.addSubCategory('Commissions', 'Commissions'));
+        sub.valueChanges.subscribe((value) => {
+            const total = form.controls['total'] as FormControl;
+            const rs = this.setSubtotal(value, total.value);
+            total.setValue(rs);
+        });
+        sub.push(this.addSubCategory(name.trim(), name));
         return form;
+    }
 
+    setSubtotal(sub: Array<{months: number[]}>, total: number[]){
+        total = total.map(() => 0) as number[];
+        sub.forEach((control) => {
+            const subTotal = control.months;
+            subTotal.forEach((v: number, i: number) => {
+                total[i] += +v;
+            });
+        });
+        return total;
     }
 
     private generateMonthOptions() {
@@ -82,7 +123,6 @@ export class BudgetListComponent implements OnInit {
         }
         return options;
     }
-
 
     addMonth(name: number) {
         const monthGroup = this.fb.group({
@@ -96,23 +136,24 @@ export class BudgetListComponent implements OnInit {
     private valueChanges() {
         this.startDate.valueChanges.subscribe((value) => {
             this.endDates = this.getEndDateOptions();
-            this.months.clear();
-            if (!value) return;
-            for (let i = value; i <= this.endDate.value; i++) {
-                this.addMonth(i);
-            }
+            this.setArrangeMonths(value, this.endDate.value);
         });
         this.endDate.valueChanges.subscribe((value) => {
-            this.months.clear();
-            if (!value) return;
-            for (let i = this.startDate.value; i <= value; i++) {
-                this.addMonth(i);
-            }
+            this.setArrangeMonths(this.startDate.value, value);
         });
+        // set default start and end of date
         this.budgetForm.patchValue({
             startDate: this.monthOptions[0].value,
             endDate: this.monthOptions[11].value,
         });
+    }
+
+    private setArrangeMonths(start: number, end: number) {
+        if (!start || !end) return;
+        this.months.clear();
+        for (let i = start; i <= end; i++) {
+            this.addMonth(i);
+        }
     }
 
     private getEndDateOptions() {
@@ -125,32 +166,19 @@ export class BudgetListComponent implements OnInit {
         console.error('Budget saved:', this.budgetForm.value);
     }
 
-
-    addSubCate1(form: AbstractControl<any>, label: string){
+    addSubCate1(form: AbstractControl<any>, label: string) {
         const sub = (form as FormGroup).controls['sub'] as FormArray;
         sub.push(this.addSubCategory(label, label));
         this.inputCate.reset('');
-
     }
 
-    addParentCategory(form: AbstractControl<any>, name: string) {
-        const categoryGroup = this.fb.group({
-            category: [name],
-            sub: this.fb.array([]),
-            total: [0],
-        });
-        const sub = categoryGroup.controls['sub'] as FormArray;
-        let monthGroup = this.fb.group({
-            type: [name],
-            months: this.fb.array([]),
-            total: [0],
-        });
-        let months = monthGroup.controls['months'] as FormArray;
-        for (let i = 1; i <= 12; i++) {
-            months.push(new FormControl(i));
+    addParentCategory(_income: FormArray, name: string) {
+        this.income.push(this.generateIncome(name));
+        const firstMonthControl = this.el.nativeElement.querySelector('.input-value');
+        if (firstMonthControl) {
+            this.renderer.setAttribute(firstMonthControl, 'autofocus', 'true');
+            firstMonthControl.focus();
         }
-        sub.push(monthGroup);
-        (form as FormArray).push(categoryGroup);
     }
 
     private addSubCategory(key: string, label: string) {
@@ -161,254 +189,42 @@ export class BudgetListComponent implements OnInit {
         });
         const total = subGroup.controls['total'] as FormControl;
         const months = subGroup.controls['months'] as FormArray;
-        let sum = 0;
         for (let i = 1; i <= 12; i++) {
-            months.push(new FormControl(i));
-            sum += 10;
+            months.push(new FormControl(0));
+            if(i === 1){
+                console.log(months.controls[0]);
+                // months[0].autofocus = true;
+            }
         }
-        total.setValue(sum);
+        total.setValue(0);
         return subGroup;
     }
-    getSub(form: AbstractControl<any>){
+    getSub(form: AbstractControl<any>) {
         return (form as FormGroup).get('sub') as FormArray;
     }
 
-    getMonth(form: AbstractControl<any>){
+    getMonth(form: AbstractControl<any>) {
         return (form as FormGroup).get('months') as FormArray;
     }
 
-    getMonthValue(form: AbstractControl<any>, month: number){
+    getMonthValue(form: AbstractControl<any>, month: number) {
         return form?.get(`${month - 1}`) as FormControl;
     }
 
-    subTotal(form: AbstractControl<any>){
-        console.log(form);
-        console.log(this.income);
-        const sub = this.getSub(form);
-        let sum = 0;
-        sub.controls.forEach((control) => {
-            sum += control.value;
-        });
-        return sum;
+
+    getSubTotal(total: number[], month: number) {
+        return total[month - 1];
+    }
+    getTotalIncome(total: number[], month: number) {
+        return total[month - 1];
     }
 
-    budgetObj = {
-        months: [
-            {
-                month: 'January',
-                sub: [
-                    {
-                        type: 'Income',
-                        sub: [
-                            {
-                                key: 'generalIncome',
-                                sub: [
-                                    {
-                                        key: 'generalIncome',
-                                        label: 'General Income',
-                                        value: 100,
-                                    },
-                                    {
-                                        key: 'sales',
-                                        label: 'Sales',
-                                        value: 200,
-                                    },
-                                    {
-                                        key: 'commission',
-                                        label: 'Commission',
-                                        value: 0,
-                                    },
-                                ],
-                                total: 300,
-                            },
-                            {
-                                key: 'otherIncome',
-                                sub: [
-                                    {
-                                        key: 'otherIncome',
-                                        label: 'Other Income',
-                                        value: null,
-                                    },
-                                    {
-                                        key: 'training',
-                                        label: 'Training',
-                                        value: 500,
-                                    },
-                                    {
-                                        key: 'consulting',
-                                        label: 'Consulting',
-                                        value: 500,
-                                    },
-                                ],
-                                total: 1000,
-                            },
-                        ],
-                        total: 1300,
-                    },
-                    {
-                        type: 'Expenses',
-                        sub: [
-                            {
-                                key: 'operationalExpenses',
-                                sub: [
-                                    {
-                                        key: 'operationalExpenses',
-                                        label: 'Operational Expenses',
-                                        value: 50,
-                                    },
-                                    {
-                                        key: 'Management Fees',
-                                        label: 'Management Fees',
-                                        value: 100,
-                                    },
-                                    {
-                                        key: 'Cloud Hosting',
-                                        label: 'Cloud Hosting',
-                                        value: 200,
-                                    },
-                                ],
-                                total: 300,
-                            },
-                            {
-                                key: 'salaries&Wages',
-                                sub: [
-                                    {
-                                        key: 'salaries&Wages',
-                                        label: 'Salaries & Wages',
-                                        value: null,
-                                    },
-                                    {
-                                        key: 'Full Time Dev Salaries',
-                                        label: 'Full Time Dev Salaries',
-                                        value: 100,
-                                    },
-                                    {
-                                        key: 'Part Time Dev Salaries',
-                                        label: 'Part Time Dev Salaries',
-                                        value: 80,
-                                    },
-                                    {
-                                        key: 'Remote Salaries',
-                                        label: 'Remote Salaries',
-                                        value: 20,
-                                    },
-                                ],
-                                total: 200,
-                            },
-                        ],
-                        total: 500,
-                    },
-                ],
-            },
-            {
-                month: 'February',
-                sub: [
-                    {
-                        type: 'Income',
-                        sub: [
-                            {
-                                key: 'generalIncome',
-                                sub: [
-                                    {
-                                        key: 'generalIncome',
-                                        label: 'General Income',
-                                        value: 100,
-                                    },
-                                    {
-                                        key: 'sales',
-                                        label: 'Sales',
-                                        value: 200,
-                                    },
-                                    {
-                                        key: 'commission',
-                                        label: 'Commission',
-                                        value: 0,
-                                    },
-                                ],
-                                total: 300,
-                            },
-                            {
-                                key: 'otherIncome',
-                                sub: [
-                                    {
-                                        key: 'otherIncome',
-                                        label: 'Other Income',
-                                        value: null,
-                                    },
-                                    {
-                                        key: 'training',
-                                        label: 'Training',
-                                        value: 500,
-                                    },
-                                    {
-                                        key: 'consulting',
-                                        label: 'Consulting',
-                                        value: 500,
-                                    },
-                                ],
-                                total: 1000,
-                            },
-                        ],
-                        total: 1300,
-                    },
-                    {
-                        type: 'Expenses',
-                        sub: [
-                            {
-                                key: 'operationalExpenses',
-                                sub: [
-                                    {
-                                        key: 'operationalExpenses',
-                                        label: 'Operational Expenses',
-                                        value: 50,
-                                    },
-                                    {
-                                        key: 'Management Fees',
-                                        label: 'Management Fees',
-                                        value: 100,
-                                    },
-                                    {
-                                        key: 'Cloud Hosting',
-                                        label: 'Cloud Hosting',
-                                        value: 200,
-                                    },
-                                ],
-                                total: 300,
-                            },
-                            {
-                                key: 'salaries&Wages',
-                                sub: [
-                                    {
-                                        key: 'salaries&Wages',
-                                        label: 'Salaries & Wages',
-                                        value: null,
-                                    },
-                                    {
-                                        key: 'Full Time Dev Salaries',
-                                        label: 'Full Time Dev Salaries',
-                                        value: 100,
-                                    },
-                                    {
-                                        key: 'Part Time Dev Salaries',
-                                        label: 'Part Time Dev Salaries',
-                                        value: 80,
-                                    },
-                                    {
-                                        key: 'Remote Salaries',
-                                        label: 'Remote Salaries',
-                                        value: 20,
-                                    },
-                                ],
-                                total: 200,
-                            },
-                        ],
-                        total: 500,
-                    },
-                ],
-            },
-        ],
-        profitOrLoss: 0,
-        openingBalance: 0,
-        closingBalance: 0,
-    };
+    ngAfterViewInit() {
+        const firstMonthControl = this.el.nativeElement.querySelector('.input-value');
+        if (firstMonthControl) {
+            this.renderer.setAttribute(firstMonthControl, 'autofocus', 'true');
+            firstMonthControl.focus();
+        }
+    }
+
 }
