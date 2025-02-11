@@ -1,4 +1,4 @@
-import { AfterViewChecked, AfterViewInit, Component, ElementRef, OnInit, Renderer2 } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, Renderer2 } from '@angular/core';
 import {
     AbstractControl,
     FormArray,
@@ -17,6 +17,7 @@ import { BudgetMonth } from '../shared/budget.model';
 export class BudgetListComponent implements OnInit, AfterViewInit {
     cateForm = new FormGroup({
         inputCate: new FormControl(''),
+        parentCate: new FormControl(''),
         // other form controls
     });
     year = '2024';
@@ -28,13 +29,36 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
         totalIncome: new FormControl([]),
         expenses: new FormArray([]),
         expensesIncome: new FormControl([]),
+        totalExpenses: new FormControl([]),
+        profitOrLoss: new FormControl([]),
+        openingBalance: new FormControl([]),
+        closingBalance: new FormControl([]),
     });
+
+    get totalExpenses() {
+        return this.budgetForm.get('totalExpenses') as FormControl;
+    }
+
+    get profitOrLoss() {
+        return this.budgetForm.get('profitOrLoss') as FormControl;
+    }
+
+    get openingBalance() {
+        return this.budgetForm.get('openingBalance') as FormControl;
+    }
+
+    get closingBalance() {
+        return this.budgetForm.get('closingBalance') as FormControl;
+    }
 
     get totalIncome() {
         return this.budgetForm.get('totalIncome') as FormControl;
     }
     get inputCate() {
         return this.cateForm.get('inputCate') as FormControl;
+    }
+    get parentCate() {
+        return this.cateForm.get('parentCate') as FormControl;
     }
 
     get months() {
@@ -67,19 +91,36 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
         this.monthOptions = this.generateMonthOptions();
         this.valueChanges();
         this.summarySubIncome();
-        this.income.push(this.generateIncome('General Income'));
+        this.income.push(this.generateSub('General Income'));
+        this.expenses.push(this.generateSub('Operational Expenses'));
 
     }
 
     summarySubIncome(){
+        this.totalIncome.valueChanges.subscribe(rs => {
+            this.sumBudget();
+        })
+        this.totalExpenses.valueChanges.subscribe(rs => {
+            this.sumBudget();
+        })
         this.income.valueChanges.subscribe((value: Array<{total: number[]}>) => {
+            let totalIncome = this.generateTotal();
+            value.forEach((v) => {
+                v.total.forEach((v: number, i: number) => {
+                    totalIncome[i] += +v | 0;
+                });
+            });
+            this.totalIncome.setValue(totalIncome);
+
+        })
+        this.expenses.valueChanges.subscribe((value: Array<{total: number[]}>) => {
             let totalIncome = this.generateTotal();
             value.forEach((v, i) => {
                 v.total.forEach((v: number, i: number) => {
                     totalIncome[i] += +v | 0;
                 });
             });
-            this.totalIncome.setValue(totalIncome);
+            this.totalExpenses.setValue(totalIncome);
 
         })
     }
@@ -89,7 +130,7 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
     }
 
     // sub income
-    private generateIncome(name: string) {
+    private generateSub(name: string) {
         const form = this.fb.group({
             category: [name],
             sub: this.fb.array([]),
@@ -172,8 +213,11 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
         this.inputCate.reset('');
     }
 
-    addParentCategory(_income: FormArray, name: string) {
-        this.income.push(this.generateIncome(name));
+    addParentCategory(root: FormArray, name: string) {
+        name = this.parentCate.value;
+        if(!name.trim()) return;
+        this.parentCate.setValue('');
+        root.push(this.generateSub(name));
         const firstMonthControl = this.el.nativeElement.querySelector('.input-value');
         if (firstMonthControl) {
             this.renderer.setAttribute(firstMonthControl, 'autofocus', 'true');
@@ -191,10 +235,6 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
         const months = subGroup.controls['months'] as FormArray;
         for (let i = 1; i <= 12; i++) {
             months.push(new FormControl(0));
-            if(i === 1){
-                console.log(months.controls[0]);
-                // months[0].autofocus = true;
-            }
         }
         total.setValue(0);
         return subGroup;
@@ -215,8 +255,33 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
     getSubTotal(total: number[], month: number) {
         return total[month - 1];
     }
-    getTotalIncome(total: number[], month: number) {
+    getTotalMonth(total: number[], month: number) {
         return total[month - 1];
+    }
+
+    sumBudget(){
+        this.profitOrLoss.setValue(this.generateTotal());
+        this.openingBalance.setValue(this.generateTotal());
+        this.closingBalance.setValue(this.generateTotal());
+        const totalIncome = this.totalIncome.value;
+        const totalExpenses = this.totalExpenses.value;
+        const profitOrLoss = this.profitOrLoss.value;
+        const openingBalance = this.openingBalance.value;
+        const closingBalance = this.closingBalance.value;
+        totalIncome.forEach((v: number, i: number) => {
+            profitOrLoss[i] = v - totalExpenses[i];
+            openingBalance[i] = i === 0 ? 0 : closingBalance[i - 1];
+            closingBalance[i] = openingBalance[i] + profitOrLoss[i];
+        });
+
+    }
+
+    formatNumb(numb: any) {
+        console.log(numb.target.value);
+        numb = numb.target.value;
+        // separate by comma;
+        // .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+        return numb.replace(/[^0-9.]/g, '').replace(/\.(?=.*\.)/g, '');
     }
 
     ngAfterViewInit() {

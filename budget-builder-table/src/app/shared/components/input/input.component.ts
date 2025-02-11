@@ -10,8 +10,9 @@ import { FormControl } from '@angular/forms';
 export class InputComponent {
     @Output() enter = new EventEmitter<string>();
 
-
+    @Input() hintLabel!: string;
     @Input() label!: string;
+    @Input() isLabel: boolean = true;
     @Input() type: string = 'text';
     @Input() placeholder: string = '';
     @Input() control!: FormControl;
