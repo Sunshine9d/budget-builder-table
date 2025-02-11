@@ -1,4 +1,10 @@
-import { AfterViewInit, Component, ElementRef, OnInit, Renderer2 } from '@angular/core';
+import {
+    AfterViewInit,
+    Component,
+    ElementRef,
+    OnInit,
+    Renderer2,
+} from '@angular/core';
 import {
     AbstractControl,
     FormArray,
@@ -18,7 +24,6 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
     cateForm = new FormGroup({
         inputCate: new FormControl(''),
         parentCate: new FormControl(''),
-        // other form controls
     });
     year = '2024';
     budgetForm = new FormGroup({
@@ -85,7 +90,11 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
     monthOptions: Array<{ value: number; label: string }> = [];
     endDates: Array<{ value: number; label: string }> = [];
 
-    constructor(private fb: FormBuilder, private el: ElementRef, private renderer: Renderer2) {}
+    constructor(
+        private fb: FormBuilder,
+        private el: ElementRef,
+        private renderer: Renderer2,
+    ) {}
 
     ngOnInit() {
         this.monthOptions = this.generateMonthOptions();
@@ -93,36 +102,36 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
         this.summarySubIncome();
         this.income.push(this.generateSub('General Income'));
         this.expenses.push(this.generateSub('Operational Expenses'));
-
+        this.focusFirstInput();
     }
 
-    summarySubIncome(){
-        this.totalIncome.valueChanges.subscribe(rs => {
+    summarySubIncome() {
+        this.totalIncome.valueChanges.subscribe((rs) => {
             this.sumBudget();
-        })
-        this.totalExpenses.valueChanges.subscribe(rs => {
+        });
+        this.totalExpenses.valueChanges.subscribe((rs) => {
             this.sumBudget();
-        })
-        this.income.valueChanges.subscribe((value: Array<{total: number[]}>) => {
-            let totalIncome = this.generateTotal();
-            value.forEach((v) => {
-                v.total.forEach((v: number, i: number) => {
-                    totalIncome[i] += +v | 0;
-                });
-            });
-            this.totalIncome.setValue(totalIncome);
+        });
+        this.income.valueChanges.subscribe(
+            (value: Array<{ total: number[] }>) => {
+                this.totalIncome.setValue(this.calculateTotalParent(value));
+            },
+        );
+        this.expenses.valueChanges.subscribe(
+            (value: Array<{ total: number[] }>) => {
+                this.totalExpenses.setValue(this.calculateTotalParent(value));
+            },
+        );
+    }
 
-        })
-        this.expenses.valueChanges.subscribe((value: Array<{total: number[]}>) => {
-            let totalIncome = this.generateTotal();
-            value.forEach((v, i) => {
-                v.total.forEach((v: number, i: number) => {
-                    totalIncome[i] += +v | 0;
-                });
+    private calculateTotalParent(value: Array<{ total: number[] }>): number[] {
+        let totalIncome = this.generateTotal();
+        value.forEach((v) => {
+            v.total.forEach((v: number, i: number) => {
+                totalIncome[i] += +v | 0;
             });
-            this.totalExpenses.setValue(totalIncome);
-
-        })
+        });
+        return totalIncome;
     }
 
     generateTotal() {
@@ -146,7 +155,7 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
         return form;
     }
 
-    setSubtotal(sub: Array<{months: number[]}>, total: number[]){
+    setSubtotal(sub: Array<{ months: number[] }>, total: number[]) {
         total = total.map(() => 0) as number[];
         sub.forEach((control) => {
             const subTotal = control.months;
@@ -195,6 +204,7 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
         for (let i = start; i <= end; i++) {
             this.addMonth(i);
         }
+        this.focusFirstInput();
     }
 
     private getEndDateOptions() {
@@ -215,10 +225,11 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
 
     addParentCategory(root: FormArray, name: string) {
         name = this.parentCate.value;
-        if(!name.trim()) return;
+        if (!name.trim()) return;
         this.parentCate.setValue('');
         root.push(this.generateSub(name));
-        const firstMonthControl = this.el.nativeElement.querySelector('.input-value');
+        const firstMonthControl =
+            this.el.nativeElement.querySelector('.input-value');
         if (firstMonthControl) {
             this.renderer.setAttribute(firstMonthControl, 'autofocus', 'true');
             firstMonthControl.focus();
@@ -251,7 +262,6 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
         return form?.get(`${month - 1}`) as FormControl;
     }
 
-
     getSubTotal(total: number[], month: number) {
         return total[month - 1];
     }
@@ -259,7 +269,7 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
         return total[month - 1];
     }
 
-    sumBudget(){
+    sumBudget() {
         this.profitOrLoss.setValue(this.generateTotal());
         this.openingBalance.setValue(this.generateTotal());
         this.closingBalance.setValue(this.generateTotal());
@@ -273,7 +283,6 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
             openingBalance[i] = i === 0 ? 0 : closingBalance[i - 1];
             closingBalance[i] = openingBalance[i] + profitOrLoss[i];
         });
-
     }
 
     formatNumb(numb: any) {
@@ -284,12 +293,18 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
         return numb.replace(/[^0-9.]/g, '').replace(/\.(?=.*\.)/g, '');
     }
 
-    ngAfterViewInit() {
-        const firstMonthControl = this.el.nativeElement.querySelector('.input-value');
+    focusFirstInput() {
+        const firstMonthControl =
+            this.el.nativeElement.querySelector('.input-value');
+        console.log(firstMonthControl);
         if (firstMonthControl) {
+            this.renderer.setAttribute(firstMonthControl, 'autofocus', 'false');
             this.renderer.setAttribute(firstMonthControl, 'autofocus', 'true');
             firstMonthControl.focus();
         }
     }
 
+    ngAfterViewInit() {
+        this.focusFirstInput();
+    }
 }
