@@ -1,5 +1,9 @@
 <h2>Budget Builder {{ year }}</h2>
-<mat-card>
+<div class="p-6 max-w-sm mx-auto bg-white rounded-xl shadow-md space-y-4">
+    <h2 class="text-xl font-bold text-gray-900">Tailwind CSS in Angular</h2>
+    <p class="text-gray-600">If this is styled, Tailwind is working! 🚀</p>
+</div>
+<div>
     <form [formGroup]="budgetForm" class="budget-form">
         <app-select
             label="Select start Date"
@@ -66,8 +70,25 @@
                                     )
                                 "
                                 class="budget-form__input input-value"
-                                (input)="getMonthValue(getMonth(cate), month.value.month).setValue(formatNumb($event))"
+                                (input)="
+                                    getMonthValue(
+                                        getMonth(cate),
+                                        month.value.month
+                                    ).setValue(formatNumb($event))
+                                "
+                                [matMenuTriggerFor]="menu"
                             />
+                            <mat-menu #menu="matMenu" style="padding-left: 1em">
+                                <button
+                                    mat-button
+                                    mat-menu-item
+                                    (click)="
+                                        applyToAll(cate, month.value.month)
+                                    "
+                                >
+                                    Apply to all
+                                </button>
+                            </mat-menu>
                         </td>
                     </tr>
                     <tr>
@@ -76,11 +97,20 @@
                                 <app-input
                                     (enter)="addSubCate1(subItem, $event)"
                                     class="budget-form__input-clear"
-                                    [label]="'Add a new ‘' + subItem.value.category + '’ Category'"
+                                    [label]="
+                                        'Add a new ‘' +
+                                        subItem.value.category +
+                                        '’ Category'
+                                    "
                                     type="text"
                                     [isLabel]="false"
+                                    [id]="'subInput'"
                                     [control]="cateForm.controls['inputCate']"
-                                    [placeholder]="'Add a new ‘' + subItem.value.category + '’ Category'"
+                                    [placeholder]="
+                                        'Add a new ‘' +
+                                        subItem.value.category +
+                                        '’ Category'
+                                    "
                                 />
                             </div>
                         </td>
@@ -123,7 +153,9 @@
                     <td
                         *ngFor="let subItem of months.value"
                         style="color: white"
-                    >e</td>
+                    >
+                        e
+                    </td>
                 </tr>
                 <!--sum data -->
                 <tr>
@@ -182,8 +214,25 @@
                                     )
                                 "
                                 class="budget-form__input input-value"
-                                (input)="getMonthValue(getMonth(cate), month.value.month).setValue(formatNumb($event))"
+                                (input)="
+                                    getMonthValue(
+                                        getMonth(cate),
+                                        month.value.month
+                                    ).setValue(formatNumb($event))
+                                "
+                                [matMenuTriggerFor]="menu"
                             />
+                            <mat-menu #menu="matMenu" style="padding-left: 1em">
+                                <button
+                                    mat-button
+                                    mat-menu-item
+                                    (click)="
+                                        applyToAll(cate, month.value.month)
+                                    "
+                                >
+                                    Apply to all
+                                </button>
+                            </mat-menu>
                         </td>
                     </tr>
                     <tr>
@@ -192,11 +241,19 @@
                                 <app-input
                                     (enter)="addSubCate1(subItem, $event)"
                                     class="budget-form__input-clear"
-                                    [label]="'Add a new ‘' + subItem.value.category + '’ Category'"
+                                    [label]="
+                                        'Add a new ‘' +
+                                        subItem.value.category +
+                                        '’ Category'
+                                    "
                                     type="text"
                                     [isLabel]="false"
                                     [control]="cateForm.controls['inputCate']"
-                                    [placeholder]="'Add a new ‘' + subItem.value.category + '’ Category'"
+                                    [placeholder]="
+                                        'Add a new ‘' +
+                                        subItem.value.category +
+                                        '’ Category'
+                                    "
                                 />
                             </div>
                         </td>
@@ -246,7 +303,7 @@
                 <!--sum data -->
                 <tr>
                     <td [attr.colspan]="months.length + 1" style="color: white">
-                        Sum All
+                        S
                     </td>
                 </tr>
                 <tr>
@@ -257,7 +314,7 @@
                     >
                         {{
                             getTotalMonth(totalExpenses.value, item.month)
-                            | number
+                                | number
                         }}
                     </td>
                 </tr>
@@ -300,7 +357,7 @@
             </tbody>
         </table>
     </div>
-</mat-card>
+</div>
 <button
     mat-raised-button
     color="primary"

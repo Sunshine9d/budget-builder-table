@@ -102,7 +102,6 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
         this.summarySubIncome();
         this.income.push(this.generateSub('General Income'));
         this.expenses.push(this.generateSub('Operational Expenses'));
-        this.focusFirstInput();
     }
 
     summarySubIncome() {
@@ -204,7 +203,7 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
         for (let i = start; i <= end; i++) {
             this.addMonth(i);
         }
-        this.focusFirstInput();
+        this.focusSubInput();
     }
 
     private getEndDateOptions() {
@@ -293,18 +292,31 @@ export class BudgetListComponent implements OnInit, AfterViewInit {
         return numb.replace(/[^0-9.]/g, '').replace(/\.(?=.*\.)/g, '');
     }
 
-    focusFirstInput() {
+    focusFirstInput(input: string = '.input-value') {
         const firstMonthControl =
             this.el.nativeElement.querySelector('.input-value');
-        console.log(firstMonthControl);
         if (firstMonthControl) {
-            this.renderer.setAttribute(firstMonthControl, 'autofocus', 'false');
             this.renderer.setAttribute(firstMonthControl, 'autofocus', 'true');
             firstMonthControl.focus();
         }
     }
 
     ngAfterViewInit() {
-        this.focusFirstInput();
+        this.focusSubInput();
+    }
+
+    applyToAll(cate: AbstractControl, month: number) {
+        const value = this.getMonthValue(this.getMonth(cate), month).value;
+        this.months.controls.forEach((monthControl) => {
+            this.getMonthValue(this.getMonth(cate), monthControl.value.month).setValue(value);
+        });
+    }
+
+    focusSubInput() {
+        const subInput = this.el.nativeElement.querySelector('#subInput');
+        if (subInput) {
+            this.renderer.setAttribute(subInput, 'autofocus', 'true');
+            subInput.focus();
+        }
     }
 }
